@@ -78,6 +78,15 @@ def swap():
     src_url = request_text.split(" ")[0]
     src_user = request_text.split(" ")[1]
 
+    warp_2d = False
+    correct_color = False
+
+    if warp_2d in request_text.split(" "):
+        warp_2d = True
+
+    if correct_color in request_text.split(" "):
+        correct_color = True
+
     logging.info(src_user)
 
     file_name = src_user.split("|")[1].replace(">", "").replace(".", " ").title() + ".jpg"
@@ -107,7 +116,7 @@ def swap():
 
         for face in dest_faces:
             dst_points, dst_shape, dst_face = face
-            dst_img = face_swap(src_face, dst_face, src_points, dst_points, dst_shape, dst_img)
+            dst_img = face_swap(src_face, dst_face, src_points, dst_points, dst_shape, dst_img, warp_2d, correct_color)
 
         tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
         cv2.imwrite(tmp_file.name, dst_img)
