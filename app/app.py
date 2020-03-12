@@ -59,11 +59,11 @@ def get_health():
 @app.route("/image/<id>", methods=["GET"])
 def image(id):
     id_decoded = base64.b64decode(bytes(id, "utf-8")).decode("utf-8")
-    print(id_decoded)
+    logging.info(id_decoded)
     if os.path.isfile(id_decoded):
         return send_file(id_decoded, mimetype="image/jpeg", attachment_filename="test.jpg")
     else:
-        return not_found()
+        return not_found("image not found")
 
 @app.route("/snowball", methods=["POST"])
 def snowball():
