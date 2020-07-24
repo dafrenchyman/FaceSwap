@@ -307,7 +307,7 @@ def fetch_user_photo(user_id):
         response = requests.get("https://slack.com/api/users.profile.get", {"token": SWAP_TOKEN, "user": user_id})
         return response.json()["profile"].get("image_original", None)
     except Exception as e:
-        logging.info(e)
+        logging.info(f"error on fetch user photo {e}")
         return render_message("Can't fetch Photo")
 
 
@@ -329,9 +329,9 @@ def backgroundworker(response_url, image_path):
                 ],
             }
         )
-        logging.info(image_path)
-        logging.info(response_url)
-        logging.info(json_return)
+        logging.info(f"image_path: {image_path}")
+        logging.info(f"response_url: {response_url}")
+        logging.info(f"json_return: {json_return}")
         headers = {"Content-type": "application/json"}
         response = requests.post(response_url, data=json_return, headers=headers)
         response.raise_for_status()
@@ -346,7 +346,7 @@ def swap():
     if not request.form["text"]:
         abort(400)
 
-    logging.info(request.form)
+    logging.info(f"request_form: {request.form}")
     response_url = request.form.get("response_url")
     request_text = request.form["text"]
     request_text = (
@@ -389,8 +389,8 @@ def swap():
         correct_color = True
 
     logging.info("Request: " + request_text)
-    logging.info(dst_user_handle_or_url)
-    logging.info(src_user_handle_or_url)
+    logging.info(f"dest user/url: {dst_user_handle_or_url}")
+    logging.info(f"src user/url: {src_user_handle_or_url}")
 
     # Need to use a helper to download the images to fake a browser (some websites block straight downloads)
     with tempfile.NamedTemporaryFile(suffix=".jpg") as dest_img_file:
