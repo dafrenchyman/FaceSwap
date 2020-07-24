@@ -1,10 +1,12 @@
 import base64
 import glob
+import json
 import logging
 import os
 import tempfile
 from datetime import datetime
 from random import random
+from threading import Thread
 
 import cv2
 import requests
@@ -309,6 +311,33 @@ def fetch_user_photo(user_id):
         return render_message("Can't fetch Photo")
 
 
+def backgroundworker(response_url, image_path):
+    with app.app_context():
+        json_return = json.dumps(
+            {
+                "response_type": "in_channel",
+                "attachments": [
+                    {
+                        "blocks": [
+                            {
+                                "type": "image",
+                                "alt_text": "Use it at your own discretion...",
+                                "image_url": f"https://gary-robot.herokuapp.com/image/{image_path}",
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+        logging.info(image_path)
+        logging.info(response_url)
+        logging.info(json_return)
+        headers = {"Content-type": "application/json"}
+        response = requests.post(response_url, data=json_return, headers=headers)
+        response.raise_for_status()
+        return
+
+
 @app.route("/swap", methods=["POST"])
 def swap():
 
@@ -318,6 +347,7 @@ def swap():
         abort(400)
 
     logging.info(request.form)
+    response_url = request.form.get("response_url")
     request_text = request.form["text"]
     request_text = (
         request_text.replace("\xa0", " ")
@@ -413,15 +443,9 @@ def swap():
 
             tmp_file_encoded = base64.b64encode(tmp_file.name.encode("utf-8")).decode("utf-8")
 
-            json_return = jsonify(
-                {
-                    "response_type": "in_channel",
-                    "attachments": [{"image_url": f"https://gary-robot.herokuapp.com/image/{tmp_file_encoded}"}],
-                }
-            )
-            logging.info(tmp_file_encoded)
-
-            return (json_return, 200)
+            thr = Thread(target=backgroundworker, args=[response_url, tmp_file_encoded])
+            thr.start()
+            return make_response({"text": request.form["text"]}, 200)
     return make_response(jsonify({"error": BAD_REQUEST}), 400)
 
 
